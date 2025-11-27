@@ -7,8 +7,6 @@ module.exports = {
         filename: "app.js",
         path: path.resolve(__dirname, 'public')
     },
-    watch: true,
-    mode: 'development',
     plugins: [
         new CopyWebpackPlugin({
             patterns: [
