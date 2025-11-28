@@ -39,7 +39,7 @@ To start using this game, just download whole content, then in console/terminal 
 
 json-server --watch furry.json
  
-to connect to the server and at the end run index.html file or simply click here: http://kubikweb.usermd.net/FurryGame/
+to connect to the server and at the end run index.html file or simply click here: https://furry-game-1032d.web.app/
 
 Enjoy! Try to beat the best score ;)
  
