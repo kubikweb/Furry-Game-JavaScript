@@ -121,50 +121,80 @@ function Game(){
     }
 }
 
-var apiUrl = "http://localhost:3000/furry";
 
 function addScore(points) {
     if (points === undefined){
         points = 0;
     }
-    var furry = {
-        result: points
-    };
-    jQuery.ajax({
-        url: apiUrl,
-        method: "POST",
-        dataType: "json",
-        data: furry
-    }).done(function(response){
-        console.log(response);
+
+    if (typeof db === 'undefined') {
+        console.error('Firebase is not initialized!');
+        return;
+    }
+
+    db.collection('furry').add({
+        result: points,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
     })
+    .then(function(docRef) {
+        console.log("Score saved with ID:", docRef.id);
+        getTheBestScore();
+    })
+    .catch(function(error) {
+        console.error("Error saving score:", error);
+    });
 }
 
-function insertResult(furry) {
-    var arr = [];
-    var arr2 = [];
-    furry.forEach(function(item){
-        arr.push(parseInt(item.result));
-        arr2 = arr.sort(function(a,b){
-            return b-a;
-        });
+function insertResult(scores) {
+    var arr = scores.map(function(item){
+        return parseInt(item.result);
     });
-    showMaxScore(arr2[0]);
+
+    arr.sort(function(a, b){
+        return b - a;
+    });
+
+    showMaxScore(arr[0] || 0);
 }
 
 function showMaxScore(maxResult) {
     var maxScore = document.querySelector("#over .maxScore");
-    maxScore.innerText = maxResult;
+    if (maxScore) {
+        maxScore.innerText = maxResult;
+    }
 }
 
 function getTheBestScore(){
-    jQuery.ajax({
-        url: apiUrl,
-        method: "GET",
-        dataType: "json",
-    }).done(function (response) {
-        insertResult(response)
-    })
+    if (typeof db === 'undefined') {
+        console.error('Firebase is not initialized!');
+        return;
+    }
+
+    db.collection('furry')
+        .orderBy('result', 'desc')
+        .limit(100)
+        .get()
+        .then(function(querySnapshot) {
+            var scores = [];
+            querySnapshot.forEach(function(doc) {
+                scores.push({
+                    id: doc.id,
+                    result: doc.data().result
+                });
+            });
+
+            if (scores.length > 0) {
+                console.log("Loaded", scores.length, "scores from Firestore");
+                insertResult(scores);
+            } else {
+                console.log("No scores found in Firestore");
+                showMaxScore(0);
+            }
+        })
+        .catch(function(error) {
+            console.error("Error loading scores:", error);
+            showMaxScore(0);
+        });
 }
 getTheBestScore();
 
